@@ -18,7 +18,7 @@ This is what you main should be, it is the core you need, but feel free to add o
 
 ```golang
 func main() {
-    game := OpGame{}
+    game := oppi.OpGame{}
     //to init all the stuff OpGame need, it take your path for config's file in param
 	if game.Init("./assets/config/") {
 		//here you push you scene before enter into the game.loop (important to precise the IDScene here!)
@@ -37,37 +37,42 @@ And there are exemple of two scene who communicate each other (they use some con
 First Scene sTest ==>
 
 ```golang
-
 type sTest struct {
 	IDScene    string
-	testAnim   *OpAnimator
+	testSprite oppi.OpSprite
+	testAnim   *oppi.OpAnimator
+	testAnim2  *oppi.OpAnimator
 }
 
 func (sc *sTest) GetFileConfig() string {
 	return sc.IDScene
 }
 
-func (sc *sTest) Init(gameInfo OpGameConfig, renderer *sdl.Renderer) {
-	scInfo := OpInfoParser{}
-	scInfo.Init(gameInfo.pathConfig + sc.IDScene + ".json")
+func (sc *sTest) Init(gameInfo oppi.OpGameConfig, renderer *sdl.Renderer) {
+	scInfo := oppi.OpInfoParser{}
+	scInfo.Init(gameInfo.PathConfig + sc.IDScene + ".json")
 
-	sc.testAnim = NewOpAnimatorFromFile(renderer, scInfo.Blocks["animations"].Blocks["jimmySprite"])
+	sc.testSprite.InitFromFile(renderer, scInfo.Blocks["sprite"])
+	sc.testSprite.SetSize(oppi.Convert2i(gameInfo.SizeWindow))
+	sc.testAnim = oppi.NewOpAnimatorFromFile(renderer, scInfo.Blocks["animations"].Blocks["jimmySprite"])
+	sc.testAnim2 = oppi.NewOpAnimatorFromFile(renderer, scInfo.Blocks["animations"].Blocks["loicSprite"])
 }
 
-func (sc *sTest) Reset(gameInfo OpGameConfig, inputInfo *OpInput) {
-	sc.testAnim.X = int32(gameInfo.sizeWindow.X / 2)
-	sc.testAnim.Y = int32(gameInfo.sizeWindow.Y / 2)
+func (sc *sTest) Reset(gameInfo oppi.OpGameConfig, inputInfo *oppi.OpInput) {
+	sc.testAnim.X = int32(gameInfo.SizeWindow.X / 2)
+	sc.testAnim.Y = int32(gameInfo.SizeWindow.Y / 2)
 }
 
-func (sc *sTest) Update(gameInfo OpGameConfig, inputInfo *OpInput, elapsedTime float64) string {
-	var force OpVector2f
+func (sc *sTest) Update(gameInfo oppi.OpGameConfig, inputInfo *oppi.OpInput, elapsedTime float64) string {
+	var force oppi.OpVector2f
 	if len(inputInfo.Gamepads) >= 1 {
-		force = GetLeftStick(inputInfo.Gamepads[0], true)
+		force = oppi.GetLeftStick(inputInfo.Gamepads[0], true)
 	}
 	force.MulForce(elapsedTime * 1000)
-	sc.testAnim.Move(Convert2i(force))
+	sc.testAnim.Move(oppi.Convert2i(force))
 
 	sc.testAnim.Update(elapsedTime)
+	sc.testAnim2.Update(elapsedTime)
 	if inputInfo.KeyState[sdl.K_a] {
 		return "test2"
 	}
@@ -76,9 +81,10 @@ func (sc *sTest) Update(gameInfo OpGameConfig, inputInfo *OpInput, elapsedTime f
 
 func (sc *sTest) Draw(renderer *sdl.Renderer) {
 	sc.testAnim.Draw(renderer)
+	sc.testAnim2.Draw(renderer)
 }
 
-func (sc *sTest) PassInfoToNextScene(nextScene IOpScene) {
+func (sc *sTest) PassInfoToNextScene(nextScene oppi.IOpScene) {
 	aller := nextScene.(*sTest2)
 
 	aller.testFromOther = "attends sérieusement !"
@@ -88,29 +94,30 @@ func (sc *sTest) PassInfoToNextScene(nextScene IOpScene) {
 Second Scene sTest2 ==>
 
 ```golang
+//simple file test to show a scene's exemple
 type sTest2 struct {
 	IDScene, testFromOther string
-	testSprite             OpSprite
+	testSprite             oppi.OpSprite
 }
 
 func (sc *sTest2) GetFileConfig() string {
 	return sc.IDScene
 }
 
-func (sc *sTest2) Init(gameInfo OpGameConfig, renderer *sdl.Renderer) {
-	scInfo := OpInfoParser{}
-	scInfo.Init(gameInfo.pathConfig + sc.IDScene + ".json")
+func (sc *sTest2) Init(gameInfo oppi.OpGameConfig, renderer *sdl.Renderer) {
+	scInfo := oppi.OpInfoParser{}
+	scInfo.Init(gameInfo.PathConfig + sc.IDScene + ".json")
 
 	sc.testSprite.InitFromFile(renderer, scInfo.Blocks["sprite"])
-	sc.testSprite.SetSize(Convert2i(gameInfo.sizeWindow))
+	sc.testSprite.SetSize(oppi.Convert2i(gameInfo.SizeWindow))
 	fmt.Println("SC 2 :", sc.testFromOther)
 }
 
-func (sc *sTest2) Reset(gameInfo OpGameConfig, inputInfo *OpInput) {
+func (sc *sTest2) Reset(gameInfo oppi.OpGameConfig, inputInfo *oppi.OpInput) {
 	fmt.Println("SC 2 :", sc.testFromOther)
 }
 
-func (sc *sTest2) Update(gameInfo OpGameConfig, inputInfo *OpInput, elapsedTime float64) string {
+func (sc *sTest2) Update(gameInfo oppi.OpGameConfig, inputInfo *oppi.OpInput, elapsedTime float64) string {
 	if inputInfo.Gamepads[0].Button[sdl.CONTROLLER_BUTTON_A] {
 		return "test"
 	}
@@ -122,7 +129,7 @@ func (sc *sTest2) Draw(renderer *sdl.Renderer) {
 	sc.testSprite.Draw(renderer)
 }
 
-func (sc *sTest2) PassInfoToNextScene(nextScene IOpScene) {
+func (sc *sTest2) PassInfoToNextScene(nextScene oppi.IOpScene) {
 }
 ```
 

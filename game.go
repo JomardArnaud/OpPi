@@ -9,17 +9,17 @@ import (
 
 //OpGameConfig all info may be usefull for other companent
 type OpGameConfig struct {
-	pathConfig            string
-	deadZone, timer       float64
-	posWindow, sizeWindow OpVector2f
+	PathConfig            string
+	DeadZone, Timer       float64
+	PosWindow, SizeWindow OpVector2f
 }
 
 //Init OpGameConfig with info from parser
 func (info *OpGameConfig) Init(parser OpInfoParser) {
-	info.deadZone = OpSetFloat(parser.Blocks["config"].Info["deadZone"])
-	info.timer = OpSetFloat(parser.Blocks["config"].Info["timer"])
-	info.posWindow = OpSetOpVector2f(parser.Blocks["config"].Info["posWindow"])
-	info.sizeWindow = OpSetOpVector2f(parser.Blocks["config"].Info["sizeWindow"])
+	info.DeadZone = OpSetFloat(parser.Blocks["config"].Info["deadZone"])
+	info.Timer = OpSetFloat(parser.Blocks["config"].Info["timer"])
+	info.PosWindow = OpSetOpVector2f(parser.Blocks["config"].Info["posWindow"])
+	info.SizeWindow = OpSetOpVector2f(parser.Blocks["config"].Info["sizeWindow"])
 }
 
 //OpGame is the main struct which contains all info to run the game
@@ -52,8 +52,8 @@ func (game *OpGame) Init(nPathConfig string) bool {
 	//main info game init
 	game.game = true
 	gameParser := OpInfoParser{}
-	game.config.pathConfig = nPathConfig
-	gameParser.Init(game.config.pathConfig + "game.json")
+	game.config.PathConfig = nPathConfig
+	gameParser.Init(game.config.PathConfig + "game.json")
 
 	game.config.Init(gameParser)
 	if game.initSdlContext() == false {
@@ -71,8 +71,8 @@ func (game *OpGame) initSdlContext() bool {
 		return false
 	}
 	//to put setup on window i can do a enum + func getStringFrom enum witcht return a type sdl from id of enum on a array
-	game.MainWindow, err = sdl.CreateWindow("Pacific Punch", int32(game.config.posWindow.X), int32(game.config.posWindow.Y),
-		int32(game.config.sizeWindow.X), int32(game.config.sizeWindow.Y), sdl.WINDOW_SHOWN)
+	game.MainWindow, err = sdl.CreateWindow("Pacific Punch", int32(game.config.PosWindow.X), int32(game.config.PosWindow.Y),
+		int32(game.config.SizeWindow.X), int32(game.config.SizeWindow.Y), sdl.WINDOW_SHOWN)
 	if err != nil {
 		fmt.Println(err)
 		return false
@@ -86,7 +86,7 @@ func (game *OpGame) initSdlContext() bool {
 		game.Gamepads = append(game.Gamepads, sdl.GameControllerOpen(i))
 	}
 	game.KeyState = sdl.GetKeyboardState()
-	game.infoInput.init(game.config.deadZone)
+	game.infoInput.init(game.config.DeadZone)
 	return true
 }
 
@@ -98,12 +98,12 @@ func (game *OpGame) Loop() bool {
 			game.event(event)
 		}
 		elapsedTime := time.Since(game.clock).Seconds()
-		if elapsedTime > game.config.timer {
+		if elapsedTime > game.config.Timer {
 			game.update(elapsedTime)
 			game.draw()
 			game.clock = time.Now()
 		} else {
-			sdl.Delay(uint32(game.config.timer - elapsedTime))
+			sdl.Delay(uint32(game.config.Timer - elapsedTime))
 		}
 	}
 	return game.game

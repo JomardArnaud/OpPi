@@ -27,7 +27,7 @@ func (manager *OpSceneManager) pushScene(gameInfo OpGameConfig, renderer *sdl.Re
 
 func (manager *OpSceneManager) init(gameInfo OpGameConfig, renderer *sdl.Renderer) {
 	infoManager := OpInfoParser{}
-	infoManager.Init(gameInfo.pathConfig + "managerScene.json")
+	infoManager.Init(gameInfo.PathConfig + "managerScene.json")
 
 	manager.idScene = infoManager.Blocks["start"].Info["startingScene"] //gameInfo.startingScene
 	manager.allScene = make(map[string]IOpScene)
