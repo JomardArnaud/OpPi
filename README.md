@@ -1,10 +1,19 @@
 # OpPi
-Go package with a scene management for SDL2 binding of veandco
+Go package with a scene management for SDL2 binding of veandco, and some other stuff to make you 2D game creation easier and faster
 
-##Installation
-In progress
+## Table of contents
+* [Technologies](#technologies)
+* [Setup](#setup)
+* [Next Update](#next update)
 
-##Main
+## Technologies
+Project is created with:
+* Golang version 
+* https://github.com/veandco/go-sdl2
+
+## Setup
+(In progress)
+### Main
 This is what you main should be, it is the core you need, but feel free to add other stuff just make sur you put all these element in this order
 
 ```golang
@@ -22,7 +31,7 @@ func main() {
 }
 ```
 
-##Scene exemple
+### Scene exemple
 And there are exemple of two scene who communicate each other (they use some config file)
 
 First Scene sTest ==>
@@ -117,7 +126,7 @@ func (sc *sTest2) PassInfoToNextScene(nextScene IOpScene) {
 }
 ```
 
-##Config file
+### Config file
 Some exemple for you config's file (game.JSON and managerScene.JSON are need good works of the package, make sure to put it into your project)
 ```JSON
 game.JSON =>
@@ -129,13 +138,13 @@ game.JSON =>
       "timer":"0.0167"  
 	}
 }
-managerScene.JSON
+managerScene.JSON =>
 {
     "start":{
         "startingScene":"test"
     }
 }
-test.JSON
+test.JSON =>
 {
     "animations":{
         "jimmySprite":{
@@ -149,7 +158,7 @@ test.JSON
         }
     }
 }
-test2.JSON
+test2.JSON =>
 {
     "sprite":{
         "loadedAtStart":"true",
@@ -159,9 +168,9 @@ test2.JSON
 }
 ```
 
-##Next update
-*add field mouse to OpInput
-*add a audio part
-*add a manager for assets
-*remake the config of OpGame to be more flexible
-*make a documentation
+## Next update
+* add field mouse to OpInput
+* add a audio part
+* add a manager for assets
+* remake the config of OpGame to be more flexible
+* make a documentation
