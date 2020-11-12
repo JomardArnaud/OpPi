@@ -17,6 +17,10 @@ go get  -v "github.com/JomardArnaud/OpPi"
 This is what you main should be, it is the core you need, but feel free to add other stuff just make sur you put all these element in this order
 
 ```golang
+package main
+
+import oppi "github.com/JomardArnaud/OpPi"
+
 func main() {
     game := oppi.OpGame{}
     //to init all the stuff OpGame need, it take your path for config's file in param
@@ -37,6 +41,13 @@ And there are exemple of two scene who communicate each other (they use some con
 First Scene sTest ==>
 
 ```golang
+package main
+
+import (
+	oppi "github.com/JomardArnaud/OpPi"
+	"github.com/veandco/go-sdl2/sdl"
+)
+
 type sTest struct {
 	IDScene   string
 	testAnim  *oppi.OpAnimator
@@ -84,13 +95,20 @@ func (sc *sTest) Draw(renderer *sdl.Renderer) {
 func (sc *sTest) PassInfoToNextScene(nextScene oppi.IOpScene) {
 	aller := nextScene.(*sTest2)
 
-	aller.testFromOther = "attends sérieusement !"
+	aller.testFromOther = "this info is from test scene"
 }
 ```
 
 Second Scene sTest2 ==>
 
 ```golang
+package main
+
+import (
+	oppi "github.com/JomardArnaud/OpPi"
+	"github.com/veandco/go-sdl2/sdl"
+)
+
 type sTest2 struct {
 	IDScene, testFromOther string
 	testSprite             oppi.OpSprite
@@ -114,11 +132,12 @@ func (sc *sTest2) Reset(gameInfo oppi.OpGameConfig, inputInfo *oppi.OpInput) {
 }
 
 func (sc *sTest2) Update(gameInfo oppi.OpGameConfig, inputInfo *oppi.OpInput, elapsedTime float64) string {
-	if inputInfo.Gamepads[0].Button[sdl.CONTROLLER_BUTTON_A] {
-		return "test"
+	if len(inputInfo.Gamepads) >= 1 {
+		if inputInfo.Gamepads[0].Button[sdl.CONTROLLER_BUTTON_A] {
+			return "test"
+		}
 	}
 	return sc.IDScene
-
 }
 
 func (sc *sTest2) Draw(renderer *sdl.Renderer) {
