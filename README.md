@@ -1,21 +1,84 @@
 # OpPi
 Go package with a scene management for SDL2 binding of veandco
 
-this is what you main should be
+##Installation
+In progress
 
+##Main
+This is what you main should be, it is the core you need, but feel free to add other stuff just make sur you put all these element in this order
+
+```golang
 func main() {
-	game := OpGame{}
+    game := OpGame{}
+    //to init all the stuff OpGame need, it take your path for config's file in param
 	if game.Init("./assets/config/") {
 		//here you push you scene before enter into the game.loop (important to precise the IDScene here!)
 		game.PushScenes(&sTest{IDScene: "test"}, &sTest2{IDScene: "test2"})
-
+        //the main loop
 		game.Loop()
-	}
+    }
+    //to clean some stuff from the SDL2
 	game.Clean()
 }
+```
 
-and there are exemple of two scene who communicate each other
+##Scene exemple
+And there are exemple of two scene who communicate each other (they use some config file)
 
+First Scene sTest ==>
+
+```golang
+
+type sTest struct {
+	IDScene    string
+	testAnim   *OpAnimator
+}
+
+func (sc *sTest) GetFileConfig() string {
+	return sc.IDScene
+}
+
+func (sc *sTest) Init(gameInfo OpGameConfig, renderer *sdl.Renderer) {
+	scInfo := OpInfoParser{}
+	scInfo.Init(gameInfo.pathConfig + sc.IDScene + ".json")
+
+	sc.testAnim = NewOpAnimatorFromFile(renderer, scInfo.Blocks["animations"].Blocks["jimmySprite"])
+}
+
+func (sc *sTest) Reset(gameInfo OpGameConfig, inputInfo *OpInput) {
+	sc.testAnim.X = int32(gameInfo.sizeWindow.X / 2)
+	sc.testAnim.Y = int32(gameInfo.sizeWindow.Y / 2)
+}
+
+func (sc *sTest) Update(gameInfo OpGameConfig, inputInfo *OpInput, elapsedTime float64) string {
+	var force OpVector2f
+	if len(inputInfo.Gamepads) >= 1 {
+		force = GetLeftStick(inputInfo.Gamepads[0], true)
+	}
+	force.MulForce(elapsedTime * 1000)
+	sc.testAnim.Move(Convert2i(force))
+
+	sc.testAnim.Update(elapsedTime)
+	if inputInfo.KeyState[sdl.K_a] {
+		return "test2"
+	}
+	return sc.IDScene
+}
+
+func (sc *sTest) Draw(renderer *sdl.Renderer) {
+	sc.testAnim.Draw(renderer)
+}
+
+func (sc *sTest) PassInfoToNextScene(nextScene IOpScene) {
+	aller := nextScene.(*sTest2)
+
+	aller.testFromOther = "attends sérieusement !"
+}
+```
+
+Second Scene sTest2 ==>
+
+```golang
 type sTest2 struct {
 	IDScene, testFromOther string
 	testSprite             OpSprite
@@ -52,61 +115,53 @@ func (sc *sTest2) Draw(renderer *sdl.Renderer) {
 
 func (sc *sTest2) PassInfoToNextScene(nextScene IOpScene) {
 }
+```
 
-type sTest struct {
-	IDScene    string
-	testSprite OpSprite
-	testAnim   *OpAnimator
-	testAnim2  *OpAnimator
-}
-
-func (sc *sTest) GetFileConfig() string {
-	return sc.IDScene
-}
-
-func (sc *sTest) Init(gameInfo OpGameConfig, renderer *sdl.Renderer) {
-	scInfo := OpInfoParser{}
-	scInfo.Init(gameInfo.pathConfig + sc.IDScene + ".json")
-
-	sc.testSprite.InitFromFile(renderer, scInfo.Blocks["sprite"])
-	sc.testSprite.SetSize(Convert2i(gameInfo.sizeWindow))
-	sc.testAnim = NewOpAnimatorFromFile(renderer, scInfo.Blocks["animations"].Blocks["jimmySprite"])
-	sc.testAnim2 = NewOpAnimatorFromFile(renderer, scInfo.Blocks["animations"].Blocks["loicSprite"])
-}
-
-func (sc *sTest) Reset(gameInfo OpGameConfig, inputInfo *OpInput) {
-	sc.testAnim.X = int32(gameInfo.sizeWindow.X / 2)
-	sc.testAnim.Y = int32(gameInfo.sizeWindow.Y / 2)
-}
-
-func (sc *sTest) Update(gameInfo OpGameConfig, inputInfo *OpInput, elapsedTime float64) string {
-	var force OpVector2f
-	if len(inputInfo.Gamepads) >= 1 {
-		force = GetLeftStick(inputInfo.Gamepads[0], true)
+##Config file
+Some exemple for you config's file (game.JSON and managerScene.JSON are need good works of the package, make sure to put it into your project)
+```JSON
+game.JSON =>
+{
+    "config":{
+      "deadZone":"10000.0",
+      "sizeWindow":"1600.0,900.0",
+      "posWindow":"10.0,10.0",
+      "timer":"0.0167"  
 	}
-	force.MulForce(elapsedTime * 1000)
-	sc.testAnim.Move(Convert2i(force))
-
-	sc.testAnim.Update(elapsedTime)
-	sc.testAnim2.Update(elapsedTime)
-	if inputInfo.KeyState[sdl.K_a] {
-		return "test2"
-	}
-	return sc.IDScene
 }
-
-func (sc *sTest) Draw(renderer *sdl.Renderer) {
-	sc.testAnim.Draw(renderer)
-	sc.testAnim2.Draw(renderer)
+managerScene.JSON
+{
+    "start":{
+        "startingScene":"test"
+    }
 }
-
-func (sc *sTest) PassInfoToNextScene(nextScene IOpScene) {
-	aller := nextScene.(*sTest2)
-
-	aller.testFromOther = "attends sérieusement !"
+test.JSON
+{
+    "animations":{
+        "jimmySprite":{
+            "pathTex":"assets/sprite/sprite_sheet_mind_master.png",
+            "rectSprite":"50,350,95,135",
+            "sizeCase":"0,0,96,138",
+            "nbAnim":"16",
+            "framePerline":"4",
+            "startingLine":"0",
+            "timePerFrame":"0.1"    
+        }
+    }
 }
+test2.JSON
+{
+    "sprite":{
+        "loadedAtStart":"true",
+        "pathSprite":"assets/sprite/CDEGEULASS.png",
+        "rectSprite":"0,0,300,300"
+    }
+}
+```
 
-next update =>
-    add field mouse to OpInput
-    add a audio part
-    add a manager for assets
+##Next update
+*add field mouse to OpInput
+*add a audio part
+*add a manager for assets
+*remake the config of OpGame to be more flexible
+*make a documentation
