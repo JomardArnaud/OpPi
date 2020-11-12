@@ -12,7 +12,10 @@ Project is created with:
 * https://github.com/veandco/go-sdl2
 
 ## Setup
+You need to have install thje binding for go of sdl from this page https://github.com/veandco/go-sdl2
+
 go get  -v "github.com/JomardArnaud/OpPi"
+
 ### Main
 This is what you main should be, it is the core you need, but feel free to add other stuff just make sur you put all these element in this order
 
