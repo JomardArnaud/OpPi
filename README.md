@@ -38,10 +38,9 @@ First Scene sTest ==>
 
 ```golang
 type sTest struct {
-	IDScene    string
-	testSprite oppi.OpSprite
-	testAnim   *oppi.OpAnimator
-	testAnim2  *oppi.OpAnimator
+	IDScene   string
+	testAnim  *oppi.OpAnimator
+	testAnim2 *oppi.OpAnimator
 }
 
 func (sc *sTest) GetFileConfig() string {
@@ -52,8 +51,6 @@ func (sc *sTest) Init(gameInfo oppi.OpGameConfig, renderer *sdl.Renderer) {
 	scInfo := oppi.OpInfoParser{}
 	scInfo.Init(gameInfo.PathConfig + sc.IDScene + ".json")
 
-	sc.testSprite.InitFromFile(renderer, scInfo.Blocks["sprite"])
-	sc.testSprite.SetSize(oppi.Convert2i(gameInfo.SizeWindow))
 	sc.testAnim = oppi.NewOpAnimatorFromFile(renderer, scInfo.Blocks["animations"].Blocks["jimmySprite"])
 	sc.testAnim2 = oppi.NewOpAnimatorFromFile(renderer, scInfo.Blocks["animations"].Blocks["loicSprite"])
 }
@@ -94,7 +91,6 @@ func (sc *sTest) PassInfoToNextScene(nextScene oppi.IOpScene) {
 Second Scene sTest2 ==>
 
 ```golang
-//simple file test to show a scene's exemple
 type sTest2 struct {
 	IDScene, testFromOther string
 	testSprite             oppi.OpSprite
