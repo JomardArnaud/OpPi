@@ -4,7 +4,7 @@ Go package with a scene management for SDL2 binding of veandco, and some other s
 ## Table of contents
 * [Technologies](#technologies)
 * [Setup](#setup)
-* [Next-Update](#next update)
+* [NextUpdate](#next-update)
 
 ## Technologies
 Project is created with:
