@@ -194,8 +194,16 @@ test2.JSON =>
 ```
 
 ## Next update
-* add field mouse to OpInput
-* add a audio part
-* add a manager for assets
-* remake the config of OpGame to be more flexible
-* make a documentation
+	for upload the v1
+		* add a event method to IOpScene
+		* add field mouse to OpInput
+		* add a audio part
+		* add a manager for assets
+		* add more interactivity with OpGame
+		* add a font gestion
+	important feature 
+		* binding input
+		* make tool to save info in file and update OpInfoParser
+		* make convex polygon texture from OpVector
+		* remake the config of OpGame to be more flexible
+		* make a documentation
