@@ -7,11 +7,13 @@ import (
 //IOpScene is interface for scene
 type IOpScene interface {
 	GetFileConfig() string
-	Init(OpGameConfig, *sdl.Renderer)
+	Init(OpGameConfig, *sdl.Renderer) //(OpGameConfig, *sdl.Renderer)
 	Reset(OpGameConfig, *OpInput)
+	Event(sdl.Event) string
 	Update(OpGameConfig, *OpInput, float64) string
 	Draw(*sdl.Renderer)
 	PassInfoToNextScene(IOpScene)
+	Clean()
 }
 
 //OpSceneManager contains and manage scene's game
@@ -31,6 +33,16 @@ func (manager *OpSceneManager) init(gameInfo OpGameConfig, renderer *sdl.Rendere
 
 	manager.idScene = infoManager.Blocks["start"].Info["startingScene"] //gameInfo.startingScene
 	manager.allScene = make(map[string]IOpScene)
+}
+
+func (manager *OpSceneManager) event(e sdl.Event) {
+	manager.idPrevScene = manager.idScene
+	manager.idScene = manager.allScene[manager.idScene].Event(e)
+	if manager.idPrevScene != manager.idScene {
+		manager.allScene[manager.idPrevScene].PassInfoToNextScene(manager.allScene[manager.idScene])
+		// manager.allScene[manager.idScene].Reset(gameInfo, infoInput)
+		// infoInput.Empty()
+	}
 }
 
 func (manager *OpSceneManager) update(elapsedTime float64, gameInfo OpGameConfig, infoInput *OpInput) {

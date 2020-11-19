@@ -9,36 +9,33 @@ import (
 
 //OpGameConfig all info may be usefull for other companent
 type OpGameConfig struct {
-	PathConfig            string
-	DeadZone, Timer       float64
-	PosWindow, SizeWindow OpVector2f
+	PathConfig              string
+	DeadZone, Buffer, Timer float64
+	PosWindow, SizeWindow   OpVector2f
+}
+
+//OpGame is the main struct which contains all info to run the game
+type OpGame struct {
+	//sdl lib stuff
+	MainWindow   *sdl.Window
+	MainRenderer *sdl.Renderer
+	//stuff for the game loop
+	game        bool
+	config      OpGameConfig
+	elapsedTime float64
+	Input       OpInput
+	clock       time.Time
+	scManager   OpSceneManager
 }
 
 //Init OpGameConfig with info from parser
 func (info *OpGameConfig) Init(parser OpInfoParser) {
 	info.DeadZone = OpSetFloat(parser.Blocks["config"].Info["deadZone"])
+	info.Buffer = OpSetFloat(parser.Blocks["config"].Info["buffer"])
 	info.Timer = OpSetFloat(parser.Blocks["config"].Info["timer"])
 	info.PosWindow = OpSetOpVector2f(parser.Blocks["config"].Info["posWindow"])
 	info.SizeWindow = OpSetOpVector2f(parser.Blocks["config"].Info["sizeWindow"])
 }
-
-//OpGame is the main struct which contains all info to run the game
-type OpGame struct {
-	game   bool
-	config OpGameConfig
-	//sdl lib stuff
-	MainWindow   *sdl.Window
-	MainRenderer *sdl.Renderer
-	Gamepads     []*sdl.GameController
-	KeyState     []uint8
-	//stuff for the game loop
-	elapsedTime float64
-	infoInput   OpInput
-	clock       time.Time
-	scManager   OpSceneManager
-}
-
-//func Greeting(prefix string, who ...string)
 
 //PushScenes in the OpSceneManager
 func (game *OpGame) PushScenes(scenes ...IOpScene) {
@@ -82,11 +79,7 @@ func (game *OpGame) initSdlContext() bool {
 		fmt.Println(err)
 		return false
 	}
-	for i := 0; i < sdl.NumJoysticks(); i++ {
-		game.Gamepads = append(game.Gamepads, sdl.GameControllerOpen(i))
-	}
-	game.KeyState = sdl.GetKeyboardState()
-	game.infoInput.init(game.config.DeadZone)
+	game.Input.init(game.config.DeadZone, game.config.Buffer)
 	return true
 }
 
@@ -95,7 +88,8 @@ func (game *OpGame) Loop() bool {
 	game.clock = time.Now()
 	for game.game {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			game.event(event)
+			game.fillInputBuffer(event)
+			game.scManager.event(event)
 		}
 		elapsedTime := time.Since(game.clock).Seconds()
 		if elapsedTime > game.config.Timer {
@@ -110,7 +104,7 @@ func (game *OpGame) Loop() bool {
 }
 
 //this func need to fill two object one to manage keyboard and one to manage controller (if it not the case i can't let OpGame unsettable)
-func (game *OpGame) event(event sdl.Event) {
+func (game *OpGame) fillInputBuffer(event sdl.Event) {
 	switch t := event.(type) {
 	case *sdl.QuitEvent:
 		game.game = false
@@ -118,38 +112,37 @@ func (game *OpGame) event(event sdl.Event) {
 	case *sdl.ControllerDeviceEvent:
 		switch t.GetType() {
 		case sdl.CONTROLLERDEVICEADDED:
-			fmt.Print("pad connected")
-			game.Gamepads = append(game.Gamepads, sdl.GameControllerOpen(sdl.NumJoysticks()-1))
-			game.infoInput.pushGamepad()
+			game.Input.pushGamepad()
 			break
 		case sdl.CONTROLLERDEVICEREMOVED:
-			if len(game.Gamepads) == 1 {
-				game.Gamepads = nil
-				game.infoInput.Gamepads = nil
+			if len(game.Input.Gamepads) == 1 {
+				game.Input.Gamepads = nil
+				game.Input.GamepadsBuffer = nil
 			} else {
-				game.Gamepads = append(game.Gamepads[:t.Which], game.Gamepads[t.Which+1:]...)
-				game.infoInput.deleteGamepad(t.Which)
+				game.Input.deleteGamepad(t.Which)
 			}
 			break
 		}
 		break
-	case *sdl.ControllerAxisEvent:
-		game.infoInput.Gamepads[t.Which].Axis[t.Axis] = int(t.Value)
-		break
+	// case *sdl.ControllerAxisEvent:
+	// 	//standby i need to take time to think about how handle axis movement
+	// 	game.Input.Gamepads[t.Which].Axis[t.Axis] = int(t.Value)
+	// 	break
 	case *sdl.ControllerButtonEvent:
-		game.infoInput.Gamepads[t.Which].Button[int(t.Button)] = t.State != 0
+		if t.State != 0 { //push a new buffer only if the button is push
+			game.Input.pushNewButtonBuffer(t.Which, t.Button)
+		}
 		break
 	case *sdl.KeyboardEvent:
 		if t.GetType() == sdl.KEYUP {
 			if t.Keysym.Sym == sdl.K_ESCAPE { //must delete it
 				game.game = false
 			}
-			game.infoInput.KeyState[t.Keysym.Sym] = false
 			break
 		}
 		if t.GetType() == sdl.KEYDOWN {
 			if t.Repeat == 0 {
-				game.infoInput.KeyState[t.Keysym.Sym] = true
+				game.Input.pushNewKeyBuffer(t.Keysym.Sym)
 			}
 			break
 		}
@@ -158,7 +151,8 @@ func (game *OpGame) event(event sdl.Event) {
 }
 
 func (game *OpGame) update(elapsedTime float64) {
-	game.scManager.update(elapsedTime, game.config, &game.infoInput)
+	game.Input.update(elapsedTime)
+	game.scManager.update(elapsedTime, game.config, &game.Input)
 }
 
 func (game *OpGame) draw() {
@@ -172,7 +166,7 @@ func (game *OpGame) Clean() {
 	game.MainWindow.Destroy()
 	game.MainRenderer.Destroy()
 	for i := 0; i < sdl.NumJoysticks(); i++ {
-		defer game.Gamepads[i].Close()
+		defer game.Input.Gamepads[i].Close()
 	}
 	sdl.Quit()
 }

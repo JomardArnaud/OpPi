@@ -13,9 +13,14 @@ type OpRgba struct {
 	R, G, B, A byte
 }
 
-//OpCooldown is a little tool to control time
+//OpCooldown (in seconds) is a little tool to control time will change when i will got a better knowledge of channel and goroutine
 type OpCooldown struct {
 	Tick, Duration float64
+}
+
+//OpRect4i blabla
+type OpRect4i struct {
+	X, Y, W, H int32
 }
 
 //Update the tick using the time elapsed
@@ -26,11 +31,6 @@ func (cd *OpCooldown) Update(elapsedTime float64) {
 //Reset tick to the duration value
 func (cd *OpCooldown) Reset() {
 	cd.Tick = cd.Duration
-}
-
-//OpRect4i blabla
-type OpRect4i struct {
-	X, Y, W, H int32
 }
 
 //OpSetInt convert a string into a int

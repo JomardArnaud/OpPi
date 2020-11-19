@@ -199,10 +199,11 @@ test2.JSON =>
 		* add field mouse to OpInput
 		* add a audio part
 		* add a manager for assets
-		* add more interactivity with OpGame
+		* add more interactivity with OpGame (for the moment i will let MainWindow with UpperLetter, the sdl ofter already plenty options) : Check
 		* add a font gestion
 	important feature 
 		* binding input
+		* refine OpInput to manage stick (like undertstand when the player did a direction for a combo)
 		* make tool to save info in file and update OpInfoParser
 		* make convex polygon texture from OpVector
 		* remake the config of OpGame to be more flexible
